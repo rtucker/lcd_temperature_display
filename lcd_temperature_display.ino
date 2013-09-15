@@ -208,11 +208,33 @@ void setup()
   #endif
 }
 
+void normalizeTime(int* timevalue, char* timeunit)
+{
+  // Convert a count of minutes into a count of minutes or hours or days
+  // It is worth noting that neither minutes nor hours will exceed 99,
+  // and days is unlikely to surpass 40 days or so due to millis()
+  // overflowing its unsigned long.
+  if (*timevalue > 1439)
+  {
+    *timevalue /= 1400;
+    *timeunit = 'd';
+  }
+  else if (*timevalue > 59)
+  {
+    *timevalue /= 60;
+    *timeunit = 'h';
+  }
+  else
+  {
+    *timeunit = 'm';
+  }
+}
+
 void loop()
 {
   float current_temp;
   int timediff;
-  unsigned char timespec;
+  char timespec;
   char outstr[17];
   
   // Get the current temperature.
@@ -248,18 +270,7 @@ void loop()
     // Print the records.
     // Start with the high
     timediff = minutesAgo(high_temp.time);
-    timespec = 'm';
-    if (timediff > 59)
-    {
-      timediff /= 60;
-      timespec = 'h';
-    }
-    
-    if (timediff > 23)
-    {
-      timediff /= 24;
-      timespec = 'd';
-    }
+    normalizeTime(&timediff, &timespec);
     
     lcd.setCursor(0, 0);
     snprintf(outstr, 17, "H%3d.%1d @%3d%c %3d", (int)high_temp.temperature, (int)(high_temp.temperature * 10) % 10, timediff, timespec, (int)current_temp);
@@ -267,18 +278,8 @@ void loop()
     
     // Then do the low
     timediff = minutesAgo(low_temp.time);
+    normalizeTime(&timediff, &timespec);
     timespec = 'm';
-    if (timediff > 59)
-    {
-      timediff /= 60;
-      timespec = 'h';
-    }
-    
-    if (timediff > 23)
-    {
-      timediff /= 24;
-      timespec = 'd';
-    }
     
     lcd.setCursor(0, 1);
     snprintf(outstr, 17, "L%3d.%1d @%3d%c %3c", (int)low_temp.temperature, (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C');
