@@ -1,15 +1,16 @@
+// vim: ts=2 et
 /*
-
-LCD Temperature Display
-
-Assumes:
-LM35 temperature device (analog pin 0)
-16x2 display connected to WickedDevices LCD shield
-Pushbutton on digital pin 7 held high by pin 8
-Red/Green/Blue backlights on digital pins 6, 9, and 10 respectively
-
-Ryan Tucker <rtucker@gmail.com>
-*/
+ *
+ *  LCD Temperature Display
+ *
+ *  Assumes:
+ *    LM35 temperature device (analog pin 0)
+ *    16x2 display connected to WickedDevices LCD shield
+ *    Pushbutton on digital pin 7 held high by pin 8
+ *    Red/Green/Blue backlights on digital pins 6, 9, and 10 respectively
+ *
+ *  Ryan Tucker <rtucker@gmail.com>
+ */
 
 // include the libraries
 #include <stdarg.h>
@@ -283,9 +284,7 @@ void loop()
     lcd.setCursor(0, 1);
     snprintf(outstr, 17, "L%3d.%1d @%3d%c %3c", (int)low_temp.temperature, (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C');
     lcd.print(outstr);
-
   } else {
-
     // Startup message and color test
     lcd.setCursor(0, 0);
     lcd.print(STARTUP_MESSAGE_0);
@@ -308,4 +307,3 @@ void loop()
   // Sleep for a bit
   delay(SLEEP_TIME);
 }
-
