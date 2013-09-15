@@ -1,15 +1,16 @@
+// vim: ts=2 et
 /*
-
-LCD Temperature Display
-
-Assumes:
-LM35 temperature device (analog pin 0)
-16x2 display connected to WickedDevices LCD shield
-Pushbutton on digital pin 7 held high by pin 8
-Red/Green/Blue backlights on digital pins 6, 9, and 10 respectively
-
-Ryan Tucker <rtucker@gmail.com>
-*/
+ *
+ *  LCD Temperature Display
+ *
+ *  Assumes:
+ *    LM35 temperature device (analog pin 0)
+ *    16x2 display connected to WickedDevices LCD shield
+ *    Pushbutton on digital pin 7 held high by pin 8
+ *    Red/Green/Blue backlights on digital pins 6, 9, and 10 respectively
+ *
+ *  Ryan Tucker <rtucker@gmail.com>
+ */
 
 // include the libraries
 #include <stdarg.h>
@@ -49,7 +50,7 @@ void processButton()
   if (reading != lastButtonState) lastDebounceTime = millis();
   lastButtonState = reading;
   digitalWrite(LED_PIN, !reading);
-  
+
   if ((reading != buttonState) && ((millis() - lastDebounceTime) > DEBOUNCE_DELAY))
   {
     buttonState = reading;
@@ -64,7 +65,7 @@ void getTemperature(float *averageval)
   int readval = analogRead(TEMPERATURE_PIN);
   byte readval_shifted;
   long bigsum = 0;
-  
+
   if (currentVoltageBin < 0)
   {
     // special case: first time through.
@@ -80,7 +81,7 @@ void getTemperature(float *averageval)
   // Shift our readval by the voltageEpsilon, constrain to fit within a byte, then save to the array
   readval_shifted = (byte)constrain((readval - voltageEpsilon), 0, 255);
   voltageBins[currentVoltageBin] = readval_shifted;
-  
+
   // Nudge voltageEpsilon as required to avoid overflow the next time around
   if (readval_shifted > 200)
   {
@@ -106,7 +107,7 @@ void getTemperature(float *averageval)
   {
     bigsum += voltageBins[i];
   }
-  
+
   // re-add our voltageEpsilon across all slots
   bigsum += voltageEpsilon << AVERAGE_BINS_BITS;
 
@@ -138,13 +139,13 @@ byte determineStep(byte old_val, byte target)
   // old_val to target in a smooth timeframe.
   byte new_val = old_val;
   byte delta   = abs(old_val - target);
-  
+
   // just return the new value if it's less than 2
   // otherwise, bump it up/down by the step shift value
   if      (delta < 2)        new_val = target;
   else if (old_val < target) new_val += (delta >> STEP_SHIFT);
   else                       new_val -= (delta >> STEP_SHIFT);
-  
+
   #ifdef DEBUG
     if (old_val != new_val)
     {
@@ -159,7 +160,7 @@ byte determineStep(byte old_val, byte target)
       Serial.println("");
     }
   #endif
-  
+
   return new_val;
 }
 
@@ -193,15 +194,15 @@ void setup()
   pinMode(BUTTON_PIN,      INPUT_PULLUP);
   pinMode(TEMPERATURE_PIN, INPUT);
 
-  // set up the LCD's number of columns and rows: 
+  // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-  
+
   // initialize voltageBins
   for (int i = 0; i < AVERAGE_BINS; i++)
   {
     voltageBins[i] = 127;
   }
-  
+
   // serial for troubleshooting
   #ifdef DEBUG
     Serial.begin(9600);
@@ -236,31 +237,31 @@ void loop()
   int timediff;
   char timespec;
   char outstr[17];
-  
+
   // Get the current temperature.
   getTemperature(&current_temp);
 
   if (millis() > (3*1000))
   {
     // We are past the startup screen.
-    
+
     // Check for button presses.
     processButton();
 
-    // Increment color if the button was pressed    
+    // Increment color if the button was pressed
     if (buttonIsPressed)
     {
       incrementColor(&next_color);
       buttonIsPressed = FALSE;
     }
-    
+
     // Check for records
     if (current_temp > high_temp.temperature)
     {
       high_temp.temperature = current_temp;
       high_temp.time = millis();
     }
-    
+
     if (current_temp < low_temp.temperature)
     {
       low_temp.temperature = current_temp;
@@ -275,38 +276,35 @@ void loop()
     lcd.setCursor(0, 0);
     snprintf(outstr, 17, "H%3d.%1d @%3d%c %3d", (int)high_temp.temperature, (int)(high_temp.temperature * 10) % 10, timediff, timespec, (int)current_temp);
     lcd.print(outstr);
-    
+
     // Then do the low
     timediff = minutesAgo(low_temp.time);
     normalizeTime(&timediff, &timespec);
     timespec = 'm';
-    
+
     lcd.setCursor(0, 1);
     snprintf(outstr, 17, "L%3d.%1d @%3d%c %3c", (int)low_temp.temperature, (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C');
     lcd.print(outstr);
-
   } else {
-    
     // Startup message and color test
     lcd.setCursor(0, 0);
     lcd.print(STARTUP_MESSAGE_0);
     lcd.setCursor(0, 1);
     lcd.print(STARTUP_MESSAGE_1);
-    
+
     // read, but ignore, button presses
     processButton();
     buttonIsPressed = FALSE;
-    
+
     next_color = VIOLET_COLOR;
-    
+
   }
-  
+
   // Manage colors
   getColorByName(&new_color, next_color);
   fadeTowardsColor(&current_color, &new_color);
   setColor(&current_color);
-  
+
   // Sleep for a bit
   delay(SLEEP_TIME);
 }
-

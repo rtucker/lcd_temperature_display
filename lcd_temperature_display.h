@@ -1,3 +1,4 @@
+// vim: ts=2 et
 #ifndef __LCD_TEMPERATURE_DISPLAY_H
 #define __LCD_TEMPERATURE_DISPLAY_H
 
@@ -38,14 +39,14 @@ struct TemperatureRecord
 
 enum ColorName
 {
-    RED_COLOR,
-    ORANGE_COLOR,
-    YELLOW_COLOR,
-    GREEN_COLOR,
-    BLUE_COLOR,
-    INDIGO_COLOR,
-    VIOLET_COLOR,
-    NO_COLOR
+  RED_COLOR,
+  ORANGE_COLOR,
+  YELLOW_COLOR,
+  GREEN_COLOR,
+  BLUE_COLOR,
+  INDIGO_COLOR,
+  VIOLET_COLOR,
+  NO_COLOR
 };
 
 
@@ -68,4 +69,3 @@ enum ColorName
 #define LCD_D7_PIN 4
 
 #endif
-
