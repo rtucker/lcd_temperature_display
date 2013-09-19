@@ -93,9 +93,21 @@ void getTemperature(float *averageval)
   }
 
   // Compute the average, scaled from ADC value to temperature.
-  *averageval  = (float)(bigsum >> AVERAGE_BINS_BITS);
+  *averageval  = float(bigsum) / float(AVERAGE_BINS);
   *averageval *= (float)TEMPERATURE_MULTIPLIER;
   *averageval += TEMPERATURE_ADDEND;
+
+  #ifdef DEBUG
+    Serial.print("getTemperature: readval=");
+    Serial.print(readval);
+    Serial.print(" currentVoltageBin=");
+    Serial.print(currentVoltageBin);
+    Serial.print(" bigsum=");
+    Serial.print(bigsum);
+    Serial.print(" *averageval=");
+    Serial.print(*averageval);
+    Serial.println("");
+  #endif
 }
 
 void getColorByName(ColorValue* result, ColorName color)
