@@ -180,7 +180,7 @@ void setup()
 
   // serial for troubleshooting
   #ifdef DEBUG
-    Serial.begin(9600);
+    Serial.begin(115200);
   #endif
 }
 
