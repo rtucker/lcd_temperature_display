@@ -32,9 +32,8 @@ unsigned long lastDebounceTime = 0;
 ColorValue current_color;
 ColorValue new_color;
 ColorName next_color;
-byte voltageBins[AVERAGE_BINS] = {127};
+int voltageBins[AVERAGE_BINS] = {0};
 int currentVoltageBin = -1;
-int voltageEpsilon;
 TemperatureRecord high_temp = {0.0, 0};
 TemperatureRecord low_temp = {999.9, 0};
 
@@ -69,34 +68,17 @@ void getTemperature(float *averageval)
   if (currentVoltageBin < 0)
   {
     // special case: first time through.
-    // Initialize our voltageEpsilon and the current voltage bin.
-    voltageEpsilon = readval-127;
     currentVoltageBin = 0;
+    for (int i = 0; i < AVERAGE_BINS; i++)
+    {
+      voltageBins[i] = readval;
+    }
     #ifdef DEBUG
-      Serial.print("getTemperature: voltageEpsilon initialized to ");
-      Serial.println(voltageEpsilon);
+      Serial.print("getTemperature: voltageBins initialized to ");
+      Serial.println(readval);
     #endif
-  }
-
-  // Shift our readval by the voltageEpsilon, constrain to fit within a byte, then save to the array
-  readval_shifted = (byte)constrain((readval - voltageEpsilon), 0, 255);
-  voltageBins[currentVoltageBin] = readval_shifted;
-
-  // Nudge voltageEpsilon as required to avoid overflow the next time around
-  if (readval_shifted > 200)
-  {
-    voltageEpsilon += 1;
-    #ifdef DEBUG
-      Serial.print("getTemperature: voltageEpsilon increased to ");
-      Serial.println(voltageEpsilon);
-    #endif
-  } else if (readval_shifted < 50)
-  {
-    voltageEpsilon -= 1;
-    #ifdef DEBUG
-      Serial.print("getTemperature: voltageEpsilon decreased to ");
-      Serial.println(voltageEpsilon);
-    #endif
+  } else {
+    voltageBins[currentVoltageBin] = readval;
   }
 
   // increment the current bin, but wrap if we're at the end
@@ -107,9 +89,6 @@ void getTemperature(float *averageval)
   {
     bigsum += voltageBins[i];
   }
-
-  // re-add our voltageEpsilon across all slots
-  bigsum += voltageEpsilon << AVERAGE_BINS_BITS;
 
   // Compute the average, scaled from ADC value to temperature.
   *averageval  = (float)(bigsum >> AVERAGE_BINS_BITS);
@@ -196,12 +175,6 @@ void setup()
 
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-
-  // initialize voltageBins
-  for (int i = 0; i < AVERAGE_BINS; i++)
-  {
-    voltageBins[i] = 127;
-  }
 
   // serial for troubleshooting
   #ifdef DEBUG
