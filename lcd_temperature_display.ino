@@ -37,6 +37,8 @@ int currentVoltageBin = -1;
 TemperatureRecord high_temp = {0.0, 0};
 TemperatureRecord low_temp = {999.9, 0};
 
+byte dotToggle = FALSE;
+
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(LCD_RS_PIN, LCD_EN_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 
@@ -229,13 +231,13 @@ void loop()
     }
 
     // Check for records
-    if (current_temp > high_temp.temperature)
+    if (current_temp - high_temp.temperature > 0.1)
     {
       high_temp.temperature = current_temp;
       high_temp.time = millis();
     }
 
-    if (current_temp < low_temp.temperature)
+    if (low_temp.temperature - current_temp > 0.1)
     {
       low_temp.temperature = current_temp;
       low_temp.time = millis();
@@ -247,8 +249,14 @@ void loop()
     normalizeTime(&timediff, &timespec);
     
     lcd.setCursor(0, 0);
-    snprintf(outstr, 17, "H%3d.%1d @%3d%c %3d", (int)high_temp.temperature, (int)(high_temp.temperature * 10) % 10, timediff, timespec, (int)current_temp);
+    snprintf(outstr, 17, "H%3d.%1d@%2d%c %3d%1c%1d", (int)high_temp.temperature,
+             (int)(high_temp.temperature * 10) % 10, timediff, timespec,
+             (int)current_temp, (dotToggle ? '.' : ' '),
+             (int)(current_temp * 10) % 10
+            );
     lcd.print(outstr);
+
+    if (currentVoltageBin == 0) dotToggle = !dotToggle;
 
     // Then do the low
     timediff = minutesAgo(low_temp.time);
@@ -256,7 +264,9 @@ void loop()
     timespec = 'm';
 
     lcd.setCursor(0, 1);
-    snprintf(outstr, 17, "L%3d.%1d @%3d%c %3c", (int)low_temp.temperature, (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C');
+    snprintf(outstr, 17, "L%3d.%1d@%2d%c  deg%1c", (int)low_temp.temperature,
+             (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C'
+            );
     lcd.print(outstr);
   } else {
     // Startup message and color test
