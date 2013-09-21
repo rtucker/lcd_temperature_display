@@ -37,8 +37,6 @@ int currentVoltageBin = -1;
 TemperatureRecord high_temp = {0.0, 0};
 TemperatureRecord low_temp = {999.9, 0};
 
-byte dotToggle = FALSE;
-
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(LCD_RS_PIN, LCD_EN_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 
@@ -95,7 +93,7 @@ void getTemperature(float *averageval)
   // Compute the average, scaled from ADC value to temperature.
   *averageval  = float(bigsum) / float(AVERAGE_BINS);
   *averageval *= (float)TEMPERATURE_MULTIPLIER;
-  *averageval += TEMPERATURE_ADDEND;
+  *averageval += (float)TEMPERATURE_ADDEND;
 
   #ifdef DEBUG
     Serial.print("getTemperature: readval=");
@@ -243,45 +241,47 @@ void loop()
     }
 
     // Check for records
-    if (current_temp - high_temp.temperature > 0.1)
+    if (current_temp > high_temp.temperature)
     {
       high_temp.temperature = current_temp;
       high_temp.time = millis();
     }
 
-    if (low_temp.temperature - current_temp > 0.1)
+    if (current_temp < low_temp.temperature)
     {
       low_temp.temperature = current_temp;
       low_temp.time = millis();
     }
 
-    // Print the records.
-    // Start with the high
-    timediff = minutesAgo(high_temp.time);
-    normalizeTime(&timediff, &timespec);
-    
-    lcd.setCursor(0, 0);
-    snprintf(outstr, 17, "H%3d.%1d@%2d%c %3d%1c%1d", (int)high_temp.temperature,
-             (int)(high_temp.temperature * 10) % 10, timediff, timespec,
-             (int)current_temp, (dotToggle ? '.' : ' '),
-             (int)(current_temp * 10) % 10
-            );
-    lcd.print(outstr);
+    // Update the display once in awhile
+    if (currentVoltageBin == 0)
+    {
+      // Print the records.
+      // Start with the high
+      timediff = minutesAgo(high_temp.time);
+      normalizeTime(&timediff, &timespec);
 
-    if (currentVoltageBin == 0) dotToggle = !dotToggle;
+      lcd.setCursor(0, 0);
+      snprintf(outstr, 17, "H%3d.%1d@%2d%c %3d%1c%1d", (int)high_temp.temperature,
+               (int)(high_temp.temperature * 10) % 10, timediff, timespec,
+               (int)current_temp, '.',
+               (int)(current_temp * 10) % 10
+              );
+      lcd.print(outstr);
 
-    // Then do the low
-    timediff = minutesAgo(low_temp.time);
-    normalizeTime(&timediff, &timespec);
-    timespec = 'm';
+      // Then do the low
+      timediff = minutesAgo(low_temp.time);
+      normalizeTime(&timediff, &timespec);
+      timespec = 'm';
 
-    lcd.setCursor(0, 1);
-    snprintf(outstr, 17, "L%3d.%1d@%2d%c  deg%1c", (int)low_temp.temperature,
-             (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C'
-            );
-    lcd.print(outstr);
+      lcd.setCursor(0, 1);
+      snprintf(outstr, 17, "L%3d.%1d@%2d%c  deg%1c", (int)low_temp.temperature,
+               (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C'
+              );
+      lcd.print(outstr);
+    }
   } else {
-    // Startup message and color test
+    // Startup message
     lcd.setCursor(0, 0);
     lcd.print(STARTUP_MESSAGE_0);
     lcd.setCursor(0, 1);
