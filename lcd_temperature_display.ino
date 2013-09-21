@@ -93,7 +93,7 @@ void getTemperature(float *averageval)
   // Compute the average, scaled from ADC value to temperature.
   *averageval  = (float)(bigsum >> AVERAGE_BINS_BITS);
   *averageval *= (float)TEMPERATURE_MULTIPLIER;
-  *averageval += TEMPERATURE_ADDEND;
+  *averageval += (float)TEMPERATURE_ADDEND;
 }
 
 void getColorByName(ColorValue* result, ColorName color)
@@ -229,13 +229,13 @@ void loop()
     }
 
     // Check for records
-    if (current_temp - high_temp.temperature > 0.1)
+    if (current_temp > high_temp.temperature)
     {
       high_temp.temperature = current_temp;
       high_temp.time = millis();
     }
 
-    if (low_temp.temperature - current_temp > 0.1)
+    if (current_temp < low_temp.temperature)
     {
       low_temp.temperature = current_temp;
       low_temp.time = millis();
@@ -269,7 +269,7 @@ void loop()
       lcd.print(outstr);
     }
   } else {
-    // Startup message and color test
+    // Startup message
     lcd.setCursor(0, 0);
     lcd.print(STARTUP_MESSAGE_0);
     lcd.setCursor(0, 1);
