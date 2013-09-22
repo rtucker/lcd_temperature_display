@@ -6,6 +6,7 @@
 #define FALSE 0
 
 //#define DEBUG
+//#define DEBUG_GETTEMPERATURE
 
 // Define constants
 #define AVERAGE_BINS_BITS 8   // 10 = 2^10 = 1024
@@ -33,7 +34,7 @@ struct ColorValue
 
 struct TemperatureRecord
 {
-  float temperature;
+  int temperature;
   unsigned long time;
 };
 

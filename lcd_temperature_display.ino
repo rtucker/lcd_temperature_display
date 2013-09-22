@@ -57,6 +57,14 @@ void processButton()
   }
 }
 
+int convertTemperature(float raw_temp)
+{
+  // Converts a float temperature to integer temperature * 10
+  // e.g. 23.45 -> 235
+
+  return (int)((raw_temp * 10) + 0.5);
+}
+
 void getTemperature(float *averageval)
 {
   // Reads the temperature from the LM35 device, and computes
@@ -219,12 +227,14 @@ void normalizeTime(int* timevalue, char* timeunit)
 void loop()
 {
   float current_temp;
+  int temp_tenths;
   int timediff;
   char timespec;
   char outstr[17];
 
   // Get the current temperature.
   getTemperature(&current_temp);
+  temp_tenths = convertTemperature(current_temp);
 
   if (millis() > (3*1000))
   {
@@ -241,7 +251,7 @@ void loop()
     }
 
     // Check for records
-    if (current_temp > high_temp.temperature)
+    if (temp_tenths > high_temp.temperature)
     {
       #ifdef DEBUG
         Serial.print("loop: updating high_temp.");
@@ -251,16 +261,18 @@ void loop()
         Serial.print(high_temp.time);
         Serial.print(" current_temp=");
         Serial.print(current_temp);
+        Serial.print(" temp_tenths=");
+        Serial.print(temp_tenths);
         Serial.print(" millis=");
         Serial.print(millis());
         Serial.println("");
       #endif
 
-      high_temp.temperature = current_temp;
+      high_temp.temperature = temp_tenths;
       high_temp.time = millis();
     }
 
-    if (current_temp < low_temp.temperature)
+    if (temp_tenths < low_temp.temperature)
     {
       #ifdef DEBUG
         Serial.print("loop: updating low_temp.");
@@ -270,12 +282,14 @@ void loop()
         Serial.print(low_temp.time);
         Serial.print(" current_temp=");
         Serial.print(current_temp);
+        Serial.print(" temp_tenths=");
+        Serial.print(temp_tenths);
         Serial.print(" millis=");
         Serial.print(millis());
         Serial.println("");
       #endif
 
-      low_temp.temperature = current_temp;
+      low_temp.temperature = temp_tenths;
       low_temp.time = millis();
     }
 
@@ -288,10 +302,10 @@ void loop()
       normalizeTime(&timediff, &timespec);
 
       lcd.setCursor(0, 0);
-      snprintf(outstr, 17, "H%3d.%1d@%2d%c %3d%1c%1d", (int)high_temp.temperature,
-               (int)(high_temp.temperature * 10) % 10, timediff, timespec,
-               (int)current_temp, '.',
-               (int)(current_temp * 10) % 10
+      snprintf(outstr, 17, "H%3d.%1d@%2d%c %3d%1c%1d", high_temp.temperature/10,
+               high_temp.temperature%10, timediff, timespec,
+               temp_tenths/10, '.',
+               temp_tenths%10
               );
       lcd.print(outstr);
 
@@ -301,8 +315,8 @@ void loop()
       timespec = 'm';
 
       lcd.setCursor(0, 1);
-      snprintf(outstr, 17, "L%3d.%1d@%2d%c  deg%1c", (int)low_temp.temperature,
-               (int)(low_temp.temperature * 10) % 10, timediff, timespec, 'C'
+      snprintf(outstr, 17, "L%3d.%1d@%2d%c  deg%1c", low_temp.temperature/10,
+               low_temp.temperature%10, timediff, timespec, 'C'
               );
       lcd.print(outstr);
     }
