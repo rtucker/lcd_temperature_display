@@ -95,7 +95,7 @@ void getTemperature(float *averageval)
   *averageval *= (float)TEMPERATURE_MULTIPLIER;
   *averageval += (float)TEMPERATURE_ADDEND;
 
-  #ifdef DEBUG
+  #ifdef DEBUG_GETTEMPERATURE
     Serial.print("getTemperature: readval=");
     Serial.print(readval);
     Serial.print(" currentVoltageBin=");
