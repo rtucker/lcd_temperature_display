@@ -243,12 +243,38 @@ void loop()
     // Check for records
     if (current_temp > high_temp.temperature)
     {
+      #ifdef DEBUG
+        Serial.print("loop: updating high_temp.");
+        Serial.print(" high_temp.temperature=");
+        Serial.print(high_temp.temperature);
+        Serial.print(" high_temp.time=");
+        Serial.print(high_temp.time);
+        Serial.print(" current_temp=");
+        Serial.print(current_temp);
+        Serial.print(" millis=");
+        Serial.print(millis());
+        Serial.println("");
+      #endif
+
       high_temp.temperature = current_temp;
       high_temp.time = millis();
     }
 
     if (current_temp < low_temp.temperature)
     {
+      #ifdef DEBUG
+        Serial.print("loop: updating low_temp.");
+        Serial.print(" low_temp.temperature=");
+        Serial.print(low_temp.temperature);
+        Serial.print(" low_temp.time=");
+        Serial.print(low_temp.time);
+        Serial.print(" current_temp=");
+        Serial.print(current_temp);
+        Serial.print(" millis=");
+        Serial.print(millis());
+        Serial.println("");
+      #endif
+
       low_temp.temperature = current_temp;
       low_temp.time = millis();
     }
