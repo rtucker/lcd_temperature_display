@@ -1,4 +1,4 @@
-// vim: sw=2 ts=2 et
+// vim: sw=2 ts=2 et filetype=cpp
 /*
  *
  *  LCD Temperature Display
