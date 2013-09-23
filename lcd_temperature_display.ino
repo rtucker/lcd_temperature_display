@@ -312,7 +312,6 @@ void loop()
       // Then do the low
       timediff = minutesAgo(low_temp.time);
       normalizeTime(&timediff, &timespec);
-      timespec = 'm';
 
       lcd.setCursor(0, 1);
       snprintf(outstr, 17, "L%3d.%1d@%2d%c  deg%1c", low_temp.temperature/10,
